@@ -1,12 +1,12 @@
 package com.zeng.rotationindicator;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
-import com.zeng.rotationindicator.RotationIndicator.Mode;
+import com.zeng.rotationindicator.RotationIndicator.Style;
 
 public class MainActivity extends AppCompatActivity {
     private RotationIndicator indicator;
@@ -33,19 +33,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Button btn_horizontal = (Button) findViewById(R.id.btn_horizontal);
-        btn_horizontal.setOnClickListener(new OnClickListener() {
+        Button btn_rect = (Button) findViewById(R.id.btn_rect);
+        btn_rect.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                indicator.setDisplayMode(Mode.HORIZONTAL);
+                indicator.setStyle(Style.RECT);
             }
         });
 
-        Button btn_vertical = (Button) findViewById(R.id.btn_vertical);
+        Button btn_vertical = (Button) findViewById(R.id.btn_circle);
         btn_vertical.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                indicator.setDisplayMode(Mode.VERTICAL);
+                indicator.setStyle(Style.CIRCLE);
             }
         });
 

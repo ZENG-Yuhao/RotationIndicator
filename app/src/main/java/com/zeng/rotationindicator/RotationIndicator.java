@@ -20,32 +20,20 @@ import android.view.animation.AccelerateDecelerateInterpolator;
  */
 
 public class RotationIndicator extends View {
-    /**
-     * <p>
-     * Mode VERTICAL: <br>
-     * 1) 0 degree ----> 12 o'clock; <br>
-     * 2) degree increases ----> clockwise; <br>
-     * </p>
-     * <p>
-     * Mode HORIZONTAL: <br>
-     * 1) 0 degree ----> 3 o'clock; <br>
-     * 2) degree increases ----> clockwise; <br>
-     * </p>
-     */
-    public enum Mode {
-        VERTICAL, HORIZONTAL
-    }
-
     private final static int DEFAULT_DURATION = 200;
 
-    private Paint mCirclePaint;
+    public enum Style {
+        RECT, CIRCLE
+    }
+
+    private Paint mBackgroundPaint;
     private Paint mAxisPaint;
     private Paint mPointerPaint;
-    private int mCircleColor = android.R.color.holo_blue_dark;
+    private int mBackgroundColor = android.R.color.holo_blue_dark;
     private int mAxisColor = android.R.color.white;
     private int mPointerColor = android.R.color.holo_red_light;
     private float mAxisWidth = 3;
-    private float mPointerWidth = 7;
+    private float mPointerWidth = 5;
 
     /**
      * Current degrees, clockwise direction, drawing of view is based on this value.
@@ -56,15 +44,14 @@ public class RotationIndicator extends View {
      * When you set a rotation, specially when you call {@link #rotate(float)} which is based on current "real
      * degrees", there is a possible situation that animation has not finished, this variable is used as a buffer to
      * register final "real value/degrees".
-     *
+     * <p>
      * When {@link #isAnimationEnabled} = false, {@link #finalDegrees} is equivalent to {@link #degrees}.
      */
     private float finalDegrees = 0;
 
-    private Mode mDisplayMode;
     private boolean isVerticalAxisEnable;
     private boolean isHorizontalAxisEnable;
-
+    private Style mStyle;
     private boolean isAnimationEnabled;
     private int mAnimDuration; // millisecond
     private ValueAnimator mRotateAnimator;
@@ -94,16 +81,15 @@ public class RotationIndicator extends View {
     }
 
     private void init() {
-        setDisplayMode(Mode.HORIZONTAL);
-
-        mCirclePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mCirclePaint.setColor(getResources().getColor(mCircleColor));
+        mStyle = Style.RECT;
+        mBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mBackgroundPaint.setColor(getResources().getColor(mBackgroundColor));
 
         mAxisPaint = new Paint();
         mAxisPaint.setStrokeWidth(mAxisWidth);
         mAxisPaint.setColor(getResources().getColor(mAxisColor));
-        setHorizontalAxisEnable(true);
-        setVerticalAxisEnable(true);
+        isHorizontalAxisEnable = true;
+        isVerticalAxisEnable = true;
 
         mPointerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPointerPaint.setStrokeCap(Cap.ROUND);
@@ -124,6 +110,15 @@ public class RotationIndicator extends View {
         });
         setAnimationEnabled(true);
         setAnimationDuration(DEFAULT_DURATION);
+    }
+
+    public void setStyle(Style style) {
+        mStyle = style;
+        invalidate();
+    }
+
+    public Style getStyle() {
+        return mStyle;
     }
 
     public void setAnimationDuration(int duration) {
@@ -150,15 +145,6 @@ public class RotationIndicator extends View {
         if (mRotateAnimator.isRunning()) mRotateAnimator.cancel();
         mRotateAnimator.setFloatValues(startDegrees, endDegrees);
         mRotateAnimator.start();
-    }
-
-    public void setDisplayMode(Mode mode) {
-        mDisplayMode = mode;
-        invalidate();
-    }
-
-    public Mode getDisplayMode() {
-        return mDisplayMode;
     }
 
     /**
@@ -197,9 +183,17 @@ public class RotationIndicator extends View {
         return degrees;
     }
 
+    /**
+     * This method is deprecated, you should use {@link #setBackgroundColor(int)}
+     */
+    @Deprecated
     public void setCircleColor(int color) {
-        mCircleColor = color;
-        mCirclePaint.setColor(getResources().getColor(mCircleColor));
+        setBackgroundColor(color);
+    }
+
+    public void setBackGroundColor(int color) {
+        mBackgroundColor = color;
+        mBackgroundPaint.setColor(getResources().getColor(mBackgroundColor));
         invalidate();
     }
 
@@ -247,11 +241,40 @@ public class RotationIndicator extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        if (mStyle == Style.RECT)
+            drawRectIndicator(canvas);
+        else if (mStyle == Style.CIRCLE)
+            drawCircleIndicator(canvas);
+    }
+
+    private void drawRectIndicator(Canvas canvas) {
+        float centX = getWidth() / 2;
+        float centY = getHeight() / 2;
+        // draw rect background
+        canvas.drawRect(0, 0, getWidth(), getHeight(), mBackgroundPaint);
+
+        // draw axis
+        if (isHorizontalAxisEnable)
+            canvas.drawLine(0, centY, getWidth(), centY, mAxisPaint); // X-axis
+        if (isVerticalAxisEnable)
+            canvas.drawLine(centX, 0, centX, getHeight(), mAxisPaint); // Y-axis
+
+        // draw pointer
+        float pLen = (float) Math.sqrt(Math.pow(getWidth(), 2) + Math.pow(getHeight(), 2)); // length of pointer
+        canvas.save();
+        canvas.translate(centX, centY);
+        canvas.rotate(degrees);
+        canvas.drawLine(-pLen / 2, 0, pLen / 2, 0, mPointerPaint);
+        canvas.restore();
+
+    }
+
+    private void drawCircleIndicator(Canvas canvas) {
         float radius = Math.min(getWidth() / 2, getHeight() / 2);
         float centX = getWidth() / 2;
         float centY = getHeight() / 2;
         //draw circle background
-        canvas.drawCircle(centX, centY, radius, mCirclePaint);
+        canvas.drawCircle(centX, centY, radius, mBackgroundPaint);
 
         // draw axis
         if (isHorizontalAxisEnable)
@@ -262,14 +285,8 @@ public class RotationIndicator extends View {
         // draw pointer
         canvas.save();
         canvas.translate(centX, centY);
-
-        if (mDisplayMode == Mode.HORIZONTAL) {
-            canvas.rotate(degrees);
-            canvas.drawLine(0, 0, 0, -(radius / 3), mPointerPaint); // little line pointing to UP.
-        } else {
-            canvas.rotate(degrees - 90);
-            canvas.drawCircle(radius, 0, mPointerWidth * 1.5f, mPointerPaint);
-        }
+        canvas.rotate(degrees);
+        canvas.drawLine(0, 0, 0, -(radius / 3), mPointerPaint); // little line pointing to UP.
         canvas.drawLine(-radius, 0, radius, 0, mPointerPaint);
         canvas.restore();
     }

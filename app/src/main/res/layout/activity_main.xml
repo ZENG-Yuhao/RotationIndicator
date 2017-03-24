@@ -30,22 +30,22 @@
         app:layout_constraintLeft_toRightOf="@id/btn_plus"/>
 
     <Button
-        android:id="@+id/btn_horizontal"
+        android:id="@+id/btn_rect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Horizontal"
+        android:text="RECT"
         android:textAllCaps="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toRightOf="@id/btn_minus"/>
 
     <Button
-        android:id="@+id/btn_vertical"
+        android:id="@+id/btn_circle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Vertical"
+        android:text="CIRCLE"
         android:textAllCaps="false"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toRightOf="@id/btn_horizontal"/>
+        app:layout_constraintLeft_toRightOf="@id/btn_rect"/>
 
     <Button
         android:id="@+id/btn_anim"
